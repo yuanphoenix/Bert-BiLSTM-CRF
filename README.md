@@ -7,4 +7,4 @@ ____
 这个模型的准确率还是可以的。比我之前从网上找的效果都要好，果然最好的东西还是自己造出来的。
 ____
 训练的时候很吓人，有时候占用的显存特别大，
-模型参考了 https://github.com/CLUEbenchmark/CLUENER2020 代码，特别是读取数据的部分。
+模型参考了 [https://github.com/CLUEbenchmark/CLUENER2020](https://github.com/hemingkx/CLUENER2020) 代码，特别是读取数据的部分。
