@@ -24,7 +24,6 @@ def ner_test(model: BertNer, data_loader: DataLoader):
         for pred, true in zip(batch_output, batch_tags):
             pred_tags.extend(pred)
             true_tags.extend(true[:len(pred)])
-        break
     p = precision_score(true_tags, pred_tags, average='micro')
     r = recall_score(true_tags, pred_tags, average='micro')
     f1 = f1_score(true_tags, pred_tags, average='micro')
