@@ -1,10 +1,13 @@
 import copy
+import os
 
 import torch.nn
 from torch.utils.data import Dataset
 from transformers import BertTokenizer
+
 import config
-import os
+
+tokenizer = BertTokenizer.from_pretrained(config.bert_path)
 
 
 def collate_fn(batch):
@@ -32,10 +35,11 @@ def collate_fn(batch):
     attention_mask = []
     label_output = []
     for x, y in zip(sentence_list, labels_list):
-        input_id = [101] + x + [102]  # 添加 [CLS]和[SEP]
+        input_id = [tokenizer.cls_token_id] + x + [tokenizer.sep_token_id]  # 添加 [CLS]和[SEP]
         token_type_id = [0] * max_len
         attention = [1] * len(input_id) + [0] * (max_len - len(input_id))
-        label = [8] + y + [9] + [10] * (max_len - len(input_id))  # 增加标签
+        label = [config.txt2label[tokenizer.cls_token]] + y + [config.txt2label[tokenizer.sep_token]] + [
+            config.txt2label[tokenizer.pad_token]] * (max_len - len(input_id))  # 增加标签
         input_id.extend([0] * (max_len - len(input_id)))
 
         input_ids.append(input_id)
@@ -49,45 +53,11 @@ def collate_fn(batch):
     label_output = torch.tensor(label_output, device=config.device, dtype=torch.long)
 
     return {'input_ids': input_ids, 'token_type_ids': token_type_ids, "attention_mask": attention_mask}, label_output
-    # batch_len = len(sentence_list)
-    # # 这是这个批次里数据的最长长度
-    # max_len = max([len(s[0]) for s in sentence_list])
-    # max_true_word_mask = max([len(s[1]) for s in sentence_list])
-    # max_label = max(len(s) for s in labels_list)
-    #
-    # batch_data = torch.zeros(batch_len, max_len, dtype=torch.long)
-    # batch_labels = -1 * torch.ones(batch_len, max_label, dtype=torch.long)
-    # batch_true_word_mask = torch.zeros(batch_len, max_len, dtype=torch.long)
-    # _ = []
-    # __ = []
-    # for index, sen_list in enumerate(sentence_list):
-    #     sen_list[0].extend([0] * (max_len - len(sen_list[0])))
-    #     sen_list[1].extend([0] * (max_true_word_mask - len(sen_list[1])))
-    #     __.append([0, ] + sen_list[1])
-    #     _.append(sen_list[0])
-    #
-    # batch_data += torch.tensor(_)
-    # batch_true_word_mask += torch.tensor(__)
-    #
-    # for index, labels in enumerate(labels_list):
-    #     batch_labels[index][:len(labels)] = torch.tensor(labels)
-    #
-    # if max_len > 512:
-    #     batch_data = batch_data[:, :512]
-    #     batch_true_word_mask = batch_true_word_mask[:, :512]
-    #     batch_labels = batch_labels[:, :511]
-    #
-    # batch_data = batch_data.to(config.device)
-    # batch_labels = batch_labels.to(config.device)
-    # batch_true_word_mask = batch_true_word_mask.to(config.device)
-    #
-    # return [batch_data, batch_true_word_mask, batch_labels]
 
 
 class NerDataSet(Dataset):
     def __init__(self, mode: str):
         self.max_length = config.max_length
-        self.tokenizer = BertTokenizer.from_pretrained(config.bert_path)
         self.lines = []
         self.flags = []
         self._line = []
@@ -124,9 +94,8 @@ class NerDataSet(Dataset):
             sentences = []
             sentence_labels = []
             for word_list in self.lines:
-                # cls_sentence = ['[CLS]'] + word_list + ['[SEP]']
                 # 原来的汉字被转化为了token_id
-                sentence_to_id = [self.tokenizer.convert_tokens_to_ids(word) for word in word_list]
+                sentence_to_id = [tokenizer.convert_tokens_to_ids(word) for word in word_list]
                 sentences.append(sentence_to_id)
 
             for labels in self.flags:

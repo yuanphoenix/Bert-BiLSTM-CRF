@@ -1,5 +1,6 @@
-import platform
 import os
+import platform
+
 import torch
 
 sys_platform = platform.platform().lower()

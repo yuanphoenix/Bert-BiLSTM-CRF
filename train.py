@@ -1,12 +1,11 @@
-from torch.utils.data import DataLoader
 import torch
 from loguru import logger
+from sklearn.metrics import precision_score, recall_score, f1_score
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 import config
 from Model import BertNer
-from tqdm import tqdm
-from sklearn.metrics import precision_score, recall_score, f1_score
-
 from dataset import NerDataSet, collate_fn
 
 
@@ -59,7 +58,8 @@ def ner_train(model: BertNer, train_data_loader, dev_data_loader, epoches: int, 
                     val_accuracy = f1
                 else:
                     start_stop += 1
-                    if start_stop == 10:
+                    if start_stop == 50:
+                        logger.info(f"结束，效果最好的是{val_accuracy}")
                         return
 
 

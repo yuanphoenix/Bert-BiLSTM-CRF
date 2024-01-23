@@ -1,9 +1,10 @@
+import os
+
+import torch
 from transformers import BertTokenizer
 
-from Model import BertNer
 import config
-import torch
-import os
+from Model import BertNer
 
 if __name__ == '__main__':
     model = BertNer().to(config.device)
