@@ -1,3 +1,6 @@
+import random
+
+import numpy as np
 import torch
 from loguru import logger
 from sklearn.metrics import precision_score, recall_score, f1_score
@@ -46,14 +49,14 @@ def ner_train(model: BertNer, train_data_loader, dev_data_loader, epoches: int, 
             model.zero_grad()
             loss.backward()
             optimizer.step()
-            if step % 200 == 0:
+            if step % 10 == 0:
                 logger.info(f"平均误差{total_loss_train / 200}")
                 total_loss_train = 0.0
                 f1 = ner_test(model=model, data_loader=dev_data_loader)
                 model.train()
                 if f1 > val_accuracy:
                     start_stop = 0
-                    torch.save(model.state_dict(), f"contractNerEntity{f1}.pth")
+                    torch.save(model.state_dict(), f"contractNerEntity.pth")
                     logger.info("模型已保存。")
                     val_accuracy = f1
                 else:
@@ -63,7 +66,14 @@ def ner_train(model: BertNer, train_data_loader, dev_data_loader, epoches: int, 
                         return
 
 
+def set_seed(seed_num=1023):
+    random.seed(seed_num)
+    torch.manual_seed(seed_num)
+    np.random.seed(seed_num)
+
+
 if __name__ == '__main__':
+    set_seed()
     model = BertNer().to(config.device)
     train_data_set = NerDataSet("train")
     dev_data_set = NerDataSet("dev")
