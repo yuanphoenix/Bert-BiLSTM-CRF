@@ -17,7 +17,7 @@ def ner_test(model: BertNer, data_loader: DataLoader):
     model.eval()
     true_tags = []
     pred_tags = []
-    for bert_input, batch_label in tqdm(data_loader):
+    for bert_input, batch_label in tqdm(data_loader, position=0, leave=True):
         logits = model(bert_input, batch_label)[1]
 
         batch_output = model.crf.decode(logits, mask=bert_input['attention_mask'].gt(0))
@@ -41,7 +41,7 @@ def ner_train(model: BertNer, train_data_loader, dev_data_loader, epoches: int, 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     total_loss_train = 0
     for epoch in range(epoches):
-        for index, data in enumerate(tqdm(train_data_loader), start=1):
+        for index, data in enumerate(tqdm(train_data_loader, position=0, leave=True), start=1):
             bert_input, batch_label = data
             step = epoch * len(train_data_loader) + index
             loss = model(bert_input, batch_label)[0]
@@ -66,7 +66,7 @@ def ner_train(model: BertNer, train_data_loader, dev_data_loader, epoches: int, 
                         return
 
 
-def set_seed(seed_num=1023):
+def set_seed(seed_num=114514):
     random.seed(seed_num)
     torch.manual_seed(seed_num)
     np.random.seed(seed_num)
